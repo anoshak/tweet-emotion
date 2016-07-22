@@ -133,7 +133,59 @@
 		subscribe_key: 'sub-c-78806dd4-42a6-11e4-aed8-02ee2ddab7fe',
 		ssl: true
 	});
+	function getYelpData() {
+		var data = {"business_id": "vcNAWiLM4dR7D2nwwJ7nCA", "full_address": "4840 E Indian School Rd\nSte 101\nPhoenix, AZ 85018", "hours": {"Tuesday": {"close": "17:00", "open": "08:00"}, "Friday": {"close": "17:00", "open": "08:00"}, "Monday": {"close": "17:00", "open": "08:00"}, "Wednesday": {"close": "17:00", "open": "08:00"}, "Thursday": {"close": "17:00", "open": "08:00"}}, "open": true, "categories": ["Doctors", "Health & Medical"], "city": "Phoenix", "review_count": 9, "name": "Eric Goldberg, MD", "neighborhoods": [], "longitude": -111.98375799999999, "state": "AZ", "stars": 3.5, "latitude": 33.499313000000001, "attributes": {"By Appointment Only": true}, "type": "business"};
+		processYelpData(data);
+	}
 
+	function processYelpData(data) {
+		if(!data) return;
+		displayYelpData(data, positive);
+	}
+
+	function getYelpUserInfo(data, callback) {
+		var userInfo = {};
+
+		userInfo.lat = data.latitude;
+		userInfo.lon = data.longitude;
+
+		if(userInfo.lat === 0 && userInfo.lon === 0) return;
+
+		userInfo.state = data.state;
+		console.log(userInfo.lat);
+		console.log(userInfo.lon);
+		console.log(userInfo.state);
+		callback(userInfo);
+	}
+
+	function displayYelpData(data, emotion) {
+
+		getYelpUserInfo(data, function(user){
+			document.querySelector('.emotion').style.backgroundImage = 'url(images/'+ emotion.icon +')';
+
+			if(document.querySelector('.'+user.state)) {
+				tally[user.state] = (tally[user.state] || {positive: 0, negative: 0});
+				tally[user.state][emotion.type] = (tally[user.state][emotion.type] || 0) + 1;
+
+				var stateEl = document.querySelector('.'+user.state);
+				stateEl.style.fill = (tally[user.state].positive > tally[user.state].negative) ? positiveColor : ((tally[user.state].positive < tally[user.state].negative) ? negativeColor :neutralColor);
+
+				stateEl.setAttribute('data-positive', tally[user.state].positive);
+				stateEl.setAttribute('data-negative', tally[user.state].negative);
+			}
+
+			// Place emotion icons
+
+			var position = projection([user.lon, user.lat]);
+			if(position === null) return;
+
+			faceIcon.enter()
+				.append('svg:image')
+				.attr('xlink:href', 'images/'+ emotion.icon)
+				.attr('width', '26').attr('height', '26')
+           		.attr('transform', function(d) {return 'translate(' + position + ')';});
+		});
+	}
 	// fetching previous 100 data, then realtime stream
 	function getData() {
 		pubnub.history({
@@ -158,26 +210,14 @@
 			callback: processData
 		});
 	}
-	var flag = 1;
-	var lat;
-	var lon;
+
 	function getUserInfo(data, callback) {
 		if(!data.geo) return;
 
 		var userInfo = {};
 
-		if(flag ==1){
-			userInfo.lat = data.geo.coordinates[0];
-			userInfo.lon = data.geo.coordinates[1];
-			lat = userInfo.lat;
-			lon = userInfo.lon;
-			flag = 0;
-		}
-		else{
-			userInfo.lat = lat;
-			userInfo.lon = lon;
-		}
-
+		userInfo.lat = data.geo.coordinates[0];
+		userInfo.lon = data.geo.coordinates[1];
 
 		if(userInfo.lat === 0 && userInfo.lon === 0) return;
 
@@ -228,11 +268,14 @@
 				tally[user.state][emotion.type] = (tally[user.state][emotion.type] || 0) + 1;
 
 				var stateEl = document.querySelector('.'+user.state);
+				console.log(stateEl);
 				stateEl.style.fill = (tally[user.state].positive > tally[user.state].negative) ? positiveColor : ((tally[user.state].positive < tally[user.state].negative) ? negativeColor :neutralColor);
 
 				stateEl.setAttribute('data-positive', tally[user.state].positive);
 				stateEl.setAttribute('data-negative', tally[user.state].negative);
 			}
+
+			console.log(user.state);
 
 			// Place emotion icons
 
