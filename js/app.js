@@ -17,7 +17,7 @@
 			button.value = 'Stop me!';
 			isRunning = true;
 		}
-		
+
 	}, false);
 
 
@@ -59,7 +59,7 @@
 	};
 
 	var positiveWords = [
-		 'excellent', 'amazing', 'beautiful', 'nice', 'marvelous', 'magnificent', 'fabulous', 'astonishing', 'fantastic', 'peaceful', 'fortunate', 
+		 'excellent', 'amazing', 'beautiful', 'nice', 'marvelous', 'magnificent', 'fabulous', 'astonishing', 'fantastic', 'peaceful', 'fortunate',
 		 'brilliant', 'glorious', 'cheerful', 'gracious', 'grateful', 'splendid', 'superb', 'honorable', 'thankful', 'inspirational',
 		 'ecstatic', 'victorious', 'virtuous', 'proud', 'wonderful', 'lovely', 'delightful'
 	];
@@ -71,14 +71,14 @@
 		'love', 'adore', 'blissful', 'heartfelt', 'loving', 'lovable', 'sweetheart', 'darling', 'kawaii', 'married', 'engaged'
 	];
 	var negativeWords = [
-		'unhappy', 'bad', 'sorry', 'annoyed', 'dislike', 'anxious', 'ashamed', 'cranky', 'crap', 'crappy', 'envy', 
+		'unhappy', 'bad', 'sorry', 'annoyed', 'dislike', 'anxious', 'ashamed', 'cranky', 'crap', 'crappy', 'envy',
 		'awful', 'bored', 'boring', 'bothersome', 'bummed', 'burned', 'chaotic', 'defeated', 'devastated', 'stressed',
 		'disconnected', 'discouraged', 'dishonest', 'doomed', 'dreadful', 'embarrassed', 'evicted', 'freaked out', 'frustrated', 'stupid',
 		'guilty', 'hopeless', 'horrible', 'horrified', 'humiliated', 'ignorant', 'inhumane', 'cruel', 'insane', 'insecure',
 		'nervous', 'offended', 'oppressed', 'overwhelmed', 'pathetic', 'powerless', 'poor', 'resentful', 'robbed', 'screwed'
 	];
 	var sadWords = [
-		'sad', 'alone', 'anxious', 'depressed', 'disappointed', 'disappointing', 'sigh', 'sobbing', 'crying', 'cried', 
+		'sad', 'alone', 'anxious', 'depressed', 'disappointed', 'disappointing', 'sigh', 'sobbing', 'crying', 'cried',
 		'dumped', 'heartbroken', 'helpless', 'hurt', 'miserable', 'misunderstood', 'suicidal', ':-(', ':(', '=(', ';('
 	];
 	var angryWords = [
@@ -158,14 +158,26 @@
 			callback: processData
 		});
 	}
-
+	var flag = 1;
+	var lat;
+	var lon;
 	function getUserInfo(data, callback) {
 		if(!data.geo) return;
 
 		var userInfo = {};
 
-		userInfo.lat = data.geo.coordinates[0];
-		userInfo.lon = data.geo.coordinates[1];
+		if(flag ==1){
+			userInfo.lat = data.geo.coordinates[0];
+			userInfo.lon = data.geo.coordinates[1];
+			lat = userInfo.lat;
+			lon = userInfo.lon;
+			flag = 0;
+		}
+		else{
+			userInfo.lat = lat;
+			userInfo.lon = lon;
+		}
+
 
 		if(userInfo.lat === 0 && userInfo.lon === 0) return;
 
@@ -184,13 +196,13 @@
 		var t = (date.getHours() > 12) ? date.getHours()-12 + ':' + date.getMinutes() + ' PM' : date.getHours() + ':' + date.getMinutes() +' AM;';
 
 		userInfo.timestamp = t + ' - ' + d;
-	
+
 		console.log(userInfo.tweet);
 		callback(userInfo);
 	}
 
-	function insertLinks(text) {            
-        return text.replace(/((https?|s?ftp|ssh)\:\/\/[^"\s\<\>]*[^.,;'">\:\s\<\>\)\]\!])/g, function(url){return '<a href="'+url+'" >'+url+'</a>';});                      
+	function insertLinks(text) {
+        return text.replace(/((https?|s?ftp|ssh)\:\/\/[^"\s\<\>]*[^.,;'">\:\s\<\>\)\]\!])/g, function(url){return '<a href="'+url+'" >'+url+'</a>';});
     }
 
 	function displayData(data, emotion) {
@@ -208,7 +220,7 @@
 			document.querySelector('.reply').href ='https://twitter.com/intent/tweet?in_reply_to=' + user.id_str;
 			document.querySelector('.retweet').href = 'https://twitter.com/intent/retweet?tweet_id=' + user.id_str;
 			document.querySelector('.favorite').href = 'https://twitter.com/intent/favorite?tweet_id=' + user.id_str;
-			
+
 			document.querySelector('.tweet').style.opacity = 0.9;
 
 			if(document.querySelector('.'+user.state)) {
@@ -216,11 +228,11 @@
 				tally[user.state][emotion.type] = (tally[user.state][emotion.type] || 0) + 1;
 
 				var stateEl = document.querySelector('.'+user.state);
-				stateEl.style.fill = (tally[user.state].positive > tally[user.state].negative) ? positiveColor : ((tally[user.state].positive < tally[user.state].negative) ? negativeColor :neutralColor); 
+				stateEl.style.fill = (tally[user.state].positive > tally[user.state].negative) ? positiveColor : ((tally[user.state].positive < tally[user.state].negative) ? negativeColor :neutralColor);
 
 				stateEl.setAttribute('data-positive', tally[user.state].positive);
 				stateEl.setAttribute('data-negative', tally[user.state].negative);
-			}	
+			}
 
 			// Place emotion icons
 
@@ -236,7 +248,7 @@
 	}
 
 	function processData(data) {
-		if(!data || !data.place || !data.lang) return; 
+		if(!data || !data.place || !data.lang) return;
 		if(data.place.country_code !== 'US') return;
 		//if(data.lang !== 'en') return;
 
@@ -258,5 +270,5 @@
 	}
 
 	getData();
-	
+
 })();
