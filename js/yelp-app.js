@@ -25,37 +25,29 @@
 
 	var tally = {};
 
-	var positiveColor = '#FF8586';
-	var negativeColor = '#63A69F';
+	var positiveColor = '#008000';
+	var negativeColor = '#FF8586';
 	var neutralColor = '#DECEB3';
 
-	var positive = {
+	var excited = {
 		type: 'positive',
 		icon: 'grinning-face.png'
 	};
-	var happy = {
+	var glad = {
 		type: 'positive',
 		icon: 'smiling-face.png'
 	};
-	var lovely = {
-		type: 'positive',
-		icon: 'heart-eyed-happy-face.png'
+	var neutral = {
+		type: 'neutral',
+		icon: 'neutral-face.png'
 	};
-	var negative = {
+	var unhappy = {
 		type: 'negative',
 		icon: 'pensive-face.png'
 	};
-	var sad = {
-		type: 'negative',
-		icon: 'crying-face.png'
-	};
 	var angry = {
 		type: 'negative',
-		icon: 'angry-face.png'
-	};
-	var sick = {
-		type: 'negative',
-		icon: 'sick-face.png'
+		icon: 'crying-face.png'
 	};
 
 
@@ -88,15 +80,15 @@
 			.attr('class', function(d){ return 'states ' + d.properties.STATE_ABBR;} )
 			.attr('d', path)
 			.attr('fill', function(d, i) { return color(i); });
+			getYelpData();
 	});
 
 	var faceIcon = svg.selectAll('image').data([0]);
 
 
-
 	function getYelpData() {
-		var data1 = {"business_id": "vcNAWiLM4dR7D2nwwJ7nCA", "full_address": "4840 E Indian School Rd\nSte 101\nPhoenix, AZ 85018", "hours": {"Tuesday": {"close": "17:00", "open": "08:00"}, "Friday": {"close": "17:00", "open": "08:00"}, "Monday": {"close": "17:00", "open": "08:00"}, "Wednesday": {"close": "17:00", "open": "08:00"}, "Thursday": {"close": "17:00", "open": "08:00"}}, "open": true, "categories": ["Doctors", "Health & Medical"], "city": "Phoenix", "review_count": 9, "name": "Eric Goldberg, MD", "neighborhoods": [], "longitude": -111.98375799999999, "state": "AZ", "stars": 3.5, "latitude": 33.499313000000001, "attributes": {"By Appointment Only": true}, "type": "business"};
-		var data2 = {"business_id": "UsFtqoBl7naz8AVUBZMjQQ", "full_address": "202 McClure St\nDravosburg, PA 15034", "hours": {}, "open": true, "categories": ["Nightlife"], "city": "Dravosburg", "review_count": 4, "name": "Clancy's Pub", "neighborhoods": [], "longitude": -79.886930000000007, "state": "AZ", "stars": 3.5, "latitude": 40.350518999999998, "attributes": {"Happy Hour": true, "Accepts Credit Cards": true, "Good For Groups": true, "Outdoor Seating": false, "Price Range": 1}, "type": "business"};
+		var data1 = {"emotion": "angry", "business_id": "vcNAWiLM4dR7D2nwwJ7nCA", "full_address": "4840 E Indian School Rd\nSte 101\nPhoenix, AZ 85018", "hours": {"Tuesday": {"close": "17:00", "open": "08:00"}, "Friday": {"close": "17:00", "open": "08:00"}, "Monday": {"close": "17:00", "open": "08:00"}, "Wednesday": {"close": "17:00", "open": "08:00"}, "Thursday": {"close": "17:00", "open": "08:00"}}, "open": true, "categories": ["Doctors", "Health & Medical"], "city": "Phoenix", "review_count": 9, "name": "Eric Goldberg, MD", "neighborhoods": [], "longitude": -111.98375799999999, "state": "AZ", "stars": 3.5, "latitude": 33.499313000000001, "attributes": {"By Appointment Only": true}, "type": "business"};
+		var data2 = {"emotion": "neutral", "business_id": "UsFtqoBl7naz8AVUBZMjQQ", "full_address": "202 McClure St\nDravosburg, PA 15034", "hours": {}, "open": true, "categories": ["Nightlife"], "city": "Dravosburg", "review_count": 4, "name": "Clancy's Pub", "neighborhoods": [], "longitude": -79.886930000000007, "state": "PA", "stars": 3.5, "latitude": 40.350518999999998, "attributes": {"Happy Hour": true, "Accepts Credit Cards": true, "Good For Groups": true, "Outdoor Seating": false, "Price Range": 1}, "type": "business"};
 		processYelpData(data1);
 		processYelpData(data2);
 	}
@@ -109,9 +101,10 @@
 
 		if(userInfo.lat === 0 && userInfo.lon === 0) return;
 
-		userInfo.state = data.state
-		console.log(userInfo.lat);
-		console.log(userInfo.lon);
+		userInfo.state = data.state;
+		userInfo.name = data.name;
+		//console.log(userInfo.lat);
+		//console.log(userInfo.lon);
 		//console.log(userInfo.state);
 		callback(userInfo);
 	}
@@ -121,19 +114,35 @@
 		getYelpUserInfo(data, function(user){
 			document.querySelector('.emotion').style.backgroundImage = 'url(images/'+ emotion.icon +')';
 
-			console.log(user.state);
+			document.querySelector('.button').href = 'https://yelp.com/' + user.name;
+			//document.querySelector('.header').style.backgroundImage = 'url('+ user.avatar +')';
+			document.querySelector('.name').textContent = user.name;
+			document.querySelector('.screenname').textContent = '@' + user.name;
+			document.querySelector('.text').innerHTML = user.full_address;
+			//document.querySelector('.timestamp').textContent = user.timestamp;
+
+			//document.querySelector('.reply').href ='https://twitter.com/intent/tweet?in_reply_to=' + user.id_str;
+			//document.querySelector('.retweet').href = 'https://twitter.com/intent/retweet?tweet_id=' + user.id_str;
+			//document.querySelector('.favorite').href = 'https://twitter.com/intent/favorite?tweet_id=' + user.id_str;
+
+			document.querySelector('.tweet').style.opacity = 0.9;
+
 			if(document.querySelector('.'+user.state)) {
-				console.log("here");
-				tally[user.state] = (tally[user.state] || {positive: 0, negative: 0});
+				tally[user.state] = (tally[user.state] || {positive: 0, negative: 0, neutral: 0});
 				tally[user.state][emotion.type] = (tally[user.state][emotion.type] || 0) + 1;
 
 				var stateEl = document.querySelector('.'+user.state);
-				stateEl.style.fill = (tally[user.state].positive > tally[user.state].negative) ? positiveColor : ((tally[user.state].positive < tally[user.state].negative) ? negativeColor :neutralColor);
+				var max = Math.max(tally[user.state].positive,tally[user.state].negative,tally[user.state].neutral);
+				if (max == tally[user.state].positive)
+					stateEl.style.fill = positiveColor;
+				else if (max == tally[user.state].negative)
+					stateEl.style.fill = negativeColor;
+				else stateEl.style.fill = neutralColor;
 
 				stateEl.setAttribute('data-positive', tally[user.state].positive);
 				stateEl.setAttribute('data-negative', tally[user.state].negative);
+				stateEl.setAttribute('data-neutral', tally[user.state].neutral);
 			}
-			console.log("there");
 
 			// Place emotion icons
 
@@ -150,9 +159,10 @@
 
 	function processYelpData(data) {
 		if(!data) return;
-		displayYelpData(data, positive);
+		setTimeout(displayYelpData(data, eval(data.emotion)), 10000);;
+
 	}
 
-	getYelpData();
+
 
 })();
